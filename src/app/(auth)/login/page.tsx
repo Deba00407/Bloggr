@@ -90,7 +90,7 @@ export default function Page() {
 
     if (!isLoaded) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-lg">Loading...</div>
             </div>
         )
@@ -98,7 +98,7 @@ export default function Page() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+            <div className="min-h-screen flex items-center justify-center py-12 px-4">
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-6">
                         <div className="text-center text-red-600 mb-4">
@@ -118,7 +118,7 @@ export default function Page() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             {!pendingVerification ? (
                 // Sign In Form
                 <Card className="w-full max-w-md">

@@ -18,7 +18,6 @@ const Home = async () => {
   return (
     <>
       <div>Hello {user}</div>
-      <UserButton />
     </>
   )
 }

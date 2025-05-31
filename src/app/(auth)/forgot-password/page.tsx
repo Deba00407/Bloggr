@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
 
     if (!isLoaded) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center">
                 <div className="text-lg">Loading...</div>
             </div>
         )
@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+            <div className="min-h-screen flex items-center justify-center py-12 px-4">
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-6">
                         <div className="text-center text-red-600 mb-4">
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
 
     if (success && !pendingVerification) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+            <div className="min-h-screen flex items-center justify-center  py-12 px-4">
                 <Card className="w-full max-w-md">
                     <CardContent className="pt-6">
                         <div className="text-center text-green-600 mb-4">
@@ -154,7 +154,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             {!pendingVerification ? (
                 // Email Input Form
                 <Card className="w-full max-w-md">

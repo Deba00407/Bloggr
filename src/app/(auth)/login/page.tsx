@@ -33,31 +33,36 @@ export default function Page() {
     const [verificationCode, setVerificationCode] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [loggingIn, setLoggingIn] = useState(false)
 
     const router = useRouter()
 
     async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        if (!isLoaded) return
+        e.preventDefault();
+        if (!isLoaded) return;
+        setLoggingIn(true)
 
         try {
             const signInAttempt = await signIn.create({
                 identifier: emailAddress,
                 password,
-            })
+            });
 
-            if(signInAttempt.status === "complete"){
-                await setActive({
-                    session: signInAttempt.createdSessionId
-                })
-            }else if(signInAttempt.status === "needs_second_factor"){
+            if (signInAttempt.status === "complete") {
+                await setActive({ session: signInAttempt.createdSessionId });
+                setTimeout(() => {
+                    setLoggingIn(false)
+                    router.push("/home");
+                }, 1500)
+            } else if (signInAttempt.status === "needs_second_factor") {
                 await signIn.prepareSecondFactor({
-                    strategy: "phone_code"
-                })
+                    strategy: "phone_code",
+                });
+                setPendingVerification(true);
             }
         } catch (error: any) {
-            console.log(error)
-            setError(error.errors[0].message)
+            console.error("Sign-in error:", error);
+            setError(error.errors?.[0]?.message || "Sign-in failed. Try again.");
         }
     }
 
@@ -83,27 +88,6 @@ export default function Page() {
         }
     }
 
-    async function handleForgotPassword(e: React.MouseEvent) {
-        e.preventDefault()
-        if(!isLoaded) return
-
-        if (!emailAddress) {
-            setError("Please enter your email address first")
-            return
-        }
-
-        try {
-            await signIn.create({
-                identifier: emailAddress,
-                strategy: "reset_password_email_code",
-            })
-            alert("Password reset email sent! Check your inbox.")
-        } catch (error: any) {
-            console.log(error)
-            setError(error.errors[0].message)
-        }
-    }
-
     if (!isLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -121,8 +105,8 @@ export default function Page() {
                             <p className="font-medium">Error</p>
                             <p className="text-sm">{error}</p>
                         </div>
-                        <Button 
-                            onClick={() => setError(null)} 
+                        <Button
+                            onClick={() => setError(null)}
                             className="w-full"
                         >
                             Try Again
@@ -146,7 +130,7 @@ export default function Page() {
                             Enter your credentials to access your account
                         </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <label htmlFor="emailAddress" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -190,13 +174,14 @@ export default function Page() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <Button
-                                variant="link"
-                                className="px-0 font-normal text-sm text-blue-600 hover:underline"
-                                onClick={handleForgotPassword}
-                            >
-                                Forgot your password?
-                            </Button>
+                            <Link href={"/forgot-password"}>
+                                <Button
+                                    variant="link"
+                                    className="px-0 font-normal text-sm text-blue-600 hover:underline"
+                                >
+                                    Forgot your password?
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* CAPTCHA Element */}
@@ -204,14 +189,14 @@ export default function Page() {
                     </CardContent>
 
                     <CardFooter className="flex flex-col space-y-4">
-                        <Button 
+                        <Button
                             onClick={handleSubmit}
                             className="w-full"
                             disabled={!isLoaded}
                         >
-                            Sign In
+                            {loggingIn ? "Signing in....": "Sign in"}
                         </Button>
-                        
+
                         <div className="text-center text-sm">
                             <span className="text-gray-600">Don't have an account? </span>
                             <Link href="/register" className="text-blue-600 hover:underline font-medium">
@@ -231,7 +216,7 @@ export default function Page() {
                             We've sent a verification code to {emailAddress}
                         </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <label htmlFor="verificationCode" className="text-sm font-medium leading-none text-center block">
@@ -260,14 +245,14 @@ export default function Page() {
                     </CardContent>
 
                     <CardFooter className="flex flex-col space-y-4">
-                        <Button 
+                        <Button
                             onClick={handleVerify}
                             className="w-full"
                             disabled={!isLoaded || verificationCode.length !== 6}
                         >
                             Verify & Sign In
                         </Button>
-                        
+
                         <div className="text-center text-sm">
                             <Button
                                 variant="ghost"

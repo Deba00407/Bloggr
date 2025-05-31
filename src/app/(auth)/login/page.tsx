@@ -1,0 +1,285 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useSignIn } from "@clerk/nextjs"
+import Link from "next/link"
+import { useState } from "react"
+
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from "@/components/ui/input-otp"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+export default function Page() {
+    const { isLoaded, signIn, setActive } = useSignIn()
+    const [emailAddress, setEmailAddress] = useState("")
+    const [password, setPassword] = useState("")
+    const [pendingVerification, setPendingVerification] = useState(false)
+    const [verificationCode, setVerificationCode] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const router = useRouter()
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault()
+        if (!isLoaded) return
+
+        try {
+            const signInAttempt = await signIn.create({
+                identifier: emailAddress,
+                password,
+            })
+
+            if(signInAttempt.status === "complete"){
+                await setActive({
+                    session: signInAttempt.createdSessionId
+                })
+            }else if(signInAttempt.status === "needs_second_factor"){
+                await signIn.prepareSecondFactor({
+                    strategy: "phone_code"
+                })
+            }
+        } catch (error: any) {
+            console.log(error)
+            setError(error.errors[0].message)
+        }
+    }
+
+    async function handleVerify(e: React.FormEvent) {
+        e.preventDefault()
+        if (!isLoaded) return
+
+        try {
+            const signInAttempt = await signIn.attemptSecondFactor({
+                strategy: "phone_code",
+                code: verificationCode,
+            })
+
+            if (signInAttempt.status === "complete") {
+                await setActive({ session: signInAttempt.createdSessionId })
+                router.push("/home")
+            } else {
+                setError("Verification could not be completed")
+            }
+        } catch (error: any) {
+            console.log(error)
+            setError(error.errors[0].message)
+        }
+    }
+
+    async function handleForgotPassword(e: React.MouseEvent) {
+        e.preventDefault()
+        if(!isLoaded) return
+
+        if (!emailAddress) {
+            setError("Please enter your email address first")
+            return
+        }
+
+        try {
+            await signIn.create({
+                identifier: emailAddress,
+                strategy: "reset_password_email_code",
+            })
+            alert("Password reset email sent! Check your inbox.")
+        } catch (error: any) {
+            console.log(error)
+            setError(error.errors[0].message)
+        }
+    }
+
+    if (!isLoaded) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-lg">Loading...</div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+                <Card className="w-full max-w-md">
+                    <CardContent className="pt-6">
+                        <div className="text-center text-red-600 mb-4">
+                            <p className="font-medium">Error</p>
+                            <p className="text-sm">{error}</p>
+                        </div>
+                        <Button 
+                            onClick={() => setError(null)} 
+                            className="w-full"
+                        >
+                            Try Again
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            {!pendingVerification ? (
+                // Sign In Form
+                <Card className="w-full max-w-md">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-center">
+                            Welcome back
+                        </CardTitle>
+                        <CardDescription className="text-center">
+                            Enter your credentials to access your account
+                        </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <label htmlFor="emailAddress" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Email Address
+                            </label>
+                            <Input
+                                id="emailAddress"
+                                name="emailAddress"
+                                type="email"
+                                placeholder="Enter your email address"
+                                value={emailAddress}
+                                onChange={(e) => setEmailAddress(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? "Hide" : "Show"}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <Button
+                                variant="link"
+                                className="px-0 font-normal text-sm text-blue-600 hover:underline"
+                                onClick={handleForgotPassword}
+                            >
+                                Forgot your password?
+                            </Button>
+                        </div>
+
+                        {/* CAPTCHA Element */}
+                        <div id="clerk-captcha" className="flex justify-center"></div>
+                    </CardContent>
+
+                    <CardFooter className="flex flex-col space-y-4">
+                        <Button 
+                            onClick={handleSubmit}
+                            className="w-full"
+                            disabled={!isLoaded}
+                        >
+                            Sign In
+                        </Button>
+                        
+                        <div className="text-center text-sm">
+                            <span className="text-gray-600">Don't have an account? </span>
+                            <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                                Sign up
+                            </Link>
+                        </div>
+                    </CardFooter>
+                </Card>
+            ) : (
+                // Two-Factor Authentication Form
+                <Card className="w-full max-w-md">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-center">
+                            Two-Factor Authentication
+                        </CardTitle>
+                        <CardDescription className="text-center">
+                            We've sent a verification code to {emailAddress}
+                        </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <label htmlFor="verificationCode" className="text-sm font-medium leading-none text-center block">
+                                Enter verification code
+                            </label>
+                            <div className="flex justify-center">
+                                <InputOTP
+                                    maxLength={6}
+                                    value={verificationCode}
+                                    onChange={(value) => setVerificationCode(value)}
+                                >
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0} />
+                                        <InputOTPSlot index={1} />
+                                        <InputOTPSlot index={2} />
+                                    </InputOTPGroup>
+                                    <InputOTPSeparator />
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={3} />
+                                        <InputOTPSlot index={4} />
+                                        <InputOTPSlot index={5} />
+                                    </InputOTPGroup>
+                                </InputOTP>
+                            </div>
+                        </div>
+                    </CardContent>
+
+                    <CardFooter className="flex flex-col space-y-4">
+                        <Button 
+                            onClick={handleVerify}
+                            className="w-full"
+                            disabled={!isLoaded || verificationCode.length !== 6}
+                        >
+                            Verify & Sign In
+                        </Button>
+                        
+                        <div className="text-center text-sm">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setPendingVerification(false)}
+                                className="text-blue-600 hover:underline p-0 h-auto font-medium"
+                            >
+                                Back to sign in
+                            </Button>
+                        </div>
+                    </CardFooter>
+                </Card>
+            )}
+        </div>
+    )
+}

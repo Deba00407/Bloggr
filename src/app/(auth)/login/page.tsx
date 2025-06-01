@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useSignIn } from "@clerk/nextjs"
 import Link from "next/link"
 import { useState } from "react"
+import Image from "next/image"
 
 import {
     Card,
@@ -87,6 +88,19 @@ export default function Page() {
             setError(error.errors[0].message)
         }
     }
+
+    const handleGitHubLogin = async () => {
+        if (!isLoaded) return
+        try {
+            await signIn.authenticateWithRedirect({
+                strategy: "oauth_github",
+                redirectUrl: "/home",
+                redirectUrlComplete: "http://localhost:3000/home"
+            })
+        } catch (err) {
+            console.error("GitHub login failed", err);
+        }
+    };
 
     if (!isLoaded) {
         return (
@@ -194,7 +208,21 @@ export default function Page() {
                             className="w-full"
                             disabled={!isLoaded}
                         >
-                            {loggingIn ? "Signing in....": "Sign in"}
+                            {loggingIn ? "Signing in...." : "Sign in"}
+                        </Button>
+
+                        <Button
+                            onClick={handleGitHubLogin}
+                            className="w-full flex items-center justify-center gap-3 bg-black text-white hover:bg-gray-900 transition-colors duration-200 rounded-md py-2 px-4"
+                        >
+                            <Image
+                                src="/github.svg"
+                                alt="GitHub"
+                                width={20}
+                                height={20}
+                                className="invert"
+                            />
+                            Sign in with GitHub
                         </Button>
 
                         <div className="text-center text-sm">

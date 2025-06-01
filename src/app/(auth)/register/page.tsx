@@ -4,6 +4,7 @@
 import { useRouter } from "next/navigation"
 import { useSignUp } from "@clerk/nextjs"
 import Link from "next/link"
+import Image from "next/image"
 
 import {
     Card,
@@ -82,9 +83,23 @@ export default function Page() {
             console.log(error);
             setError(error.errors[0].message)
         }
-        
+
         setVerifying(false)
     }
+
+    const handleGitHubSignUp = async () => {
+        if (!isLoaded) return;
+        try {
+            await signUp.authenticateWithRedirect({
+                strategy: "oauth_github",
+                redirectUrl: "/home",
+                redirectUrlComplete: "http://localhost:3000/home"
+            });
+        } catch (err) {
+            console.error("GitHub sign-up failed", err);
+        }
+    };
+
 
     if (!isLoaded) {
         return (
@@ -196,7 +211,15 @@ export default function Page() {
                             className="w-full"
                             disabled={!isLoaded}
                         >
-                            {creatingAccount ? "Creating Account...": "Create Account"}
+                            {creatingAccount ? "Creating Account..." : "Create Account"}
+                        </Button>
+
+                        <Button
+                            onClick={handleGitHubSignUp}
+                            className="w-full flex items-center justify-center gap-3 bg-gray-800 text-white hover:bg-gray-900 transition-colors duration-200 rounded-md py-2 px-4 mt-3"
+                        >
+                            <Image src="/github.svg" alt="GitHub" width={20} height={20} className="invert" />
+                            Sign up with GitHub
                         </Button>
 
                         <div className="text-center text-sm">

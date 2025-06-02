@@ -31,6 +31,7 @@ const Navbar = () => {
 
                     <SignedIn>
                         <Link href="/home" className={`mr-4 ${pathname === "/home" ? "text-blue-500" : ""}`}>Home</Link>
+                        <Link href="/home/add-new-post" className={`mr-4 ${pathname === "/home/add-new-post" ? "text-blue-500" : ""}`}>New Post</Link>
                         <UserButton />
                     </SignedIn>
 

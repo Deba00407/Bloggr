@@ -1,14 +1,51 @@
-"use client"
+"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function NewPost() {
   const [aiActive, setAiActive] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <Skeleton className="h-10 w-1/2" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Skeleton className="h-48 w-full" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-36" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+        <div className="flex gap-4">
+          <Skeleton className="h-10 w-[200px]" />
+          <Skeleton className="h-10 w-[200px]" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+        <div className="flex flex-wrap gap-2 justify-between">
+          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-10 w-40" />
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -16,12 +53,12 @@ export default function NewPost() {
 
       <div className="flex gap-2 items-start">
         <Input placeholder="Post title" className="flex-1" />
-        <Button variant="outline" onClick={() => setAiActive(!aiActive)}>
+        <Button onClick={() => setAiActive(!aiActive)}>
           ✨ AI Assist
         </Button>
       </div>
 
-      <Textarea rows={10} placeholder="Write your post here..." />
+      <Textarea className="min-h-[200px]" placeholder="Write your post here..." />
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary">Enhance ✨</Button>
         <Button variant="secondary">Fix Grammar ✏️</Button>

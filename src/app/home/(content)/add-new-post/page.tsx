@@ -32,6 +32,7 @@ const addPostFormSchema = z.object({
 export default function NewPost() {
   const [aiActive, setAiActive] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
@@ -50,8 +51,23 @@ export default function NewPost() {
     },
   });
 
-  const handleFormSubmit = (values: z.infer<typeof addPostFormSchema>) => {
-    console.log("Form submitted:", values);
+  const handleFormSubmit = async (values: z.infer<typeof addPostFormSchema>) => {
+    console.log("Values: ", values)
+    const response = await fetch("/api/posts", {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+
+    if (response.ok) {
+      console.log("Post saved successfully");
+      setSuccess(true)
+      setTimeout(() => {
+        setSuccess(false)
+      }, 2500)
+    } else {
+      console.log("Post Save failed");
+    }
   };
 
   if (loading) {
@@ -225,6 +241,10 @@ export default function NewPost() {
               <Button type="button" variant="ghost">Improve Clarity & Language</Button>
             </CardContent>
           </Card>
+        )}
+
+        {success && (
+          <div>Post saved successfully</div>
         )}
       </form>
     </Form>

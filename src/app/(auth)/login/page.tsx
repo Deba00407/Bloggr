@@ -105,7 +105,13 @@ export default function Page() {
     if (!isLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-lg">Loading...</div>
+                <Image
+                    src="/Loading-animation.gif"
+                    alt="Loading..."
+                    width={96}  
+                    height={96}
+                    priority
+                />
             </div>
         )
     }

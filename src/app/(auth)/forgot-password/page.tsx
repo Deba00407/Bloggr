@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import Image from "next/image"
 
 export default function ForgotPasswordPage() {
     const { isLoaded, signIn, setActive } = useSignIn()
@@ -107,12 +108,18 @@ export default function ForgotPasswordPage() {
     }
 
     if (!isLoaded) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-lg">Loading...</div>
-            </div>
-        )
-    }
+            return (
+                <div className="min-h-screen flex items-center justify-center">
+                    <Image
+                        src="/Loading-animation.gif"
+                        alt="Loading..."
+                        width={96}  
+                        height={96}
+                        priority
+                    />
+                </div>
+            )
+        }
 
     if (error) {
         return (

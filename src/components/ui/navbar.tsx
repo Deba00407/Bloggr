@@ -18,7 +18,8 @@ const Navbar = () => {
                         alt="Logo"
                         height={100}
                         width={100}
-                        className="h-full rounded-full object-cover"
+                        priority
+                        className="h-auto w-auto rounded-full object-cover"
                     />
                 </div>
 

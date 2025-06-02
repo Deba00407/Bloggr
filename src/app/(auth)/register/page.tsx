@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 
+import { Eye, EyeClosed } from "lucide-react"
+
 export default function Page() {
     const { isLoaded, signUp, setActive } = useSignUp()
     const [username, setUsername] = useState("")
@@ -202,7 +204,7 @@ export default function Page() {
                                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? "Hide" : "Show"}
+                                    {showPassword ? <EyeClosed /> : <Eye />}
                                 </Button>
                             </div>
                         </div>

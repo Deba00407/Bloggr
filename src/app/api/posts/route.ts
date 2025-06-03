@@ -9,6 +9,7 @@ export async function POST(req: Request) {
         return new Response("Values received are empty", { status: 400 })
     }
 
+    const user = values.user
 
     await connectToDB()
 
@@ -20,7 +21,9 @@ export async function POST(req: Request) {
             tags: values.tags,
             readability: values.readability,
             tone: values.tone,
-            files: values.filePath
+            files: values.filePath,
+            author: user.username,
+            authorAvatarURL: user.imageUrl
         });
 
         console.log("✅ Post saved successfully");

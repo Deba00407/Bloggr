@@ -12,6 +12,7 @@ import { z } from "zod"
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
+
 import {
   Form,
   FormControl,
@@ -31,6 +32,8 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
+import { revalidatePath } from "next/cache";
+
 
 
 const addPostFormSchema = z.object({
@@ -54,11 +57,30 @@ export default function NewPost() {
   const [aiActive, setAiActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Get User details
+  useEffect(() => {
+    async function getUserDetails() {
+      const response = await fetch("/api/current-user");
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      return data;
+    }
+
+    getUserDetails().then((currentUser) => {
+      setUser(currentUser.user);
+    });
+  }, []);
+
 
   const addPostForm = useForm<z.infer<typeof addPostFormSchema>>({
     resolver: zodResolver(addPostFormSchema),
@@ -81,7 +103,8 @@ export default function NewPost() {
     const filePath = await handleFileUpload(values)
     const postData = {
       ...values,
-      filePath
+      filePath,
+      user
     }
 
     const response = await fetch("/api/posts", {
@@ -170,6 +193,7 @@ export default function NewPost() {
       }
     }
   }
+
 
   if (loading) {
     return (

@@ -1,11 +1,11 @@
 import React from 'react'
-import { currentUser } from '@clerk/nextjs/server'
 import Image from 'next/image'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Globe, Users, Lock, BookOpen, MessageSquare, AlertCircle, Image as ImageIcon } from 'lucide-react';
+
 
 type Post = {
   postTitle: string,
@@ -14,23 +14,15 @@ type Post = {
   readability: string,
   tone: string,
   tags: string[],
-  files: string[]
+  files: string[],
+  author: string,
+  authorAvatarURL: string
 }
 
 const Home = async () => {
-  const getUserDetails = async () => {
-    "use server"
-    const user = await currentUser()
-    if (!user) {
-      return "No user found"
-    }
 
-    return user.username
-  }
 
-  const user = await getUserDetails()
   var error: string = ""
-
 
   const getAllPosts = async () => {
     "use server"
@@ -143,7 +135,31 @@ const Home = async () => {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-3">
+              {/* Author Information */}
+              <div className="flex items-center gap-2 mb-3">
+                {post.authorAvatarURL ? (
+                  <Image
+                    src={post.authorAvatarURL}
+                    alt={`${post.author} avatar`}
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-gray-600 font-medium">
+                      {post.author?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <span className="text-sm text-gray-700 font-medium">{post.author}</span>
+              </div>
+
+              <CardDescription className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-3">
+                {post.content}
+              </CardDescription>
+
+              <div className="flex flex-wrap gap-2">
                 <Badge className={getToneColor(post.tone)} variant="secondary">
                   <MessageSquare className="w-3 h-3 mr-1" />
                   {post.tone}
@@ -153,10 +169,6 @@ const Home = async () => {
                   {post.readability}
                 </Badge>
               </div>
-
-              <CardDescription className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                {post.content}
-              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -172,7 +184,6 @@ const Home = async () => {
                     {tag.trim()}
                   </Badge>
                 ))}
-
             </div>
           )}
         </CardContent>

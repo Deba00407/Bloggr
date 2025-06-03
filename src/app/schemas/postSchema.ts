@@ -30,6 +30,14 @@ const postSchema = new mongoose.Schema({
     files: {
         type: [String],
         default: []
+    },
+
+    author: {
+        type: String
+    },
+
+    authorAvatarURL: {
+        type: String
     }
 }, { timestamps: true })
 

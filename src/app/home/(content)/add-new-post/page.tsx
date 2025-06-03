@@ -84,7 +84,6 @@ export default function NewPost() {
       filePath
     }
 
-    console.log("Values: ", values)
     const response = await fetch("/api/posts", {
       method: "POST",
       headers: { 'Content-Type': 'application/json' },

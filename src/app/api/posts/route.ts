@@ -8,8 +8,6 @@ export async function POST(req: Request) {
         return new Response("Values received are empty", { status: 400 })
     }
 
-    console.log("Values received from request: ", values);
-    
 
     await connectToDB()
 
@@ -21,6 +19,7 @@ export async function POST(req: Request) {
             tags: values.tags,
             readability: values.readability,
             tone: values.tone,
+            files: values.filePath
         });
 
         console.log("✅ Post saved successfully");

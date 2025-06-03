@@ -18,7 +18,20 @@ import {
   FormField,
   FormItem,
   FormMessage,
+  FormLabel,
 } from "@/components/ui/form"
+
+
+import { Progress } from "@/components/ui/progress"
+
+import {
+  ImageKitAbortError,
+  ImageKitInvalidRequestError,
+  ImageKitServerError,
+  ImageKitUploadNetworkError,
+  upload,
+} from "@imagekit/next";
+
 
 const addPostFormSchema = z.object({
   postTitle: z.string().min(4, { message: "Title must be at least 4 characters." }),
@@ -26,7 +39,15 @@ const addPostFormSchema = z.object({
   tags: z.string().optional(),
   tone: z.enum(["informative", "creative", "formal", "casual"]),
   readability: z.enum(["simple", "medium", "advanced"]),
-  audience: z.enum(["public", "followers", "private"])
+  audience: z.enum(["public", "followers", "private"]),
+  uploadFile: z.array(
+    z.instanceof(File).refine((file) => file.size < 10 * 1024 * 1024, {
+      message: "File size must be less than 10MB"
+    })).min(1, { message: "Atleast one file is required" })
+    .refine(
+      (files) => files.every((file) => file.size < 10 * 1024 * 1024),
+      "File size must be less than 10MB"
+    )
 });
 
 export default function NewPost() {
@@ -48,15 +69,26 @@ export default function NewPost() {
       tone: "informative",
       readability: "simple",
       audience: "public",
+      uploadFile: []
     },
   });
 
+  const [progress, setProgress] = useState(0)
+  const abortController = new AbortController()
+
   const handleFormSubmit = async (values: z.infer<typeof addPostFormSchema>) => {
+
+    const filePath = await handleFileUpload(values)
+    const postData = {
+      ...values,
+      filePath
+    }
+
     console.log("Values: ", values)
     const response = await fetch("/api/posts", {
       method: "POST",
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
+      body: JSON.stringify(postData),
     });
 
     if (response.ok) {
@@ -69,6 +101,76 @@ export default function NewPost() {
       console.log("Post Save failed");
     }
   };
+
+  const authenticator = async () => {
+    try {
+      const response = await fetch("/api/upload-auth")
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Error getting imagekit auth params:", errorText)
+        return null
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error("Imagekit auth error:", error)
+      return null
+    }
+  }
+
+  // Handles file upload
+  const handleFileUpload = async (values: z.infer<typeof addPostFormSchema>) => {
+
+    const authParams = await authenticator()
+    if (!authParams) {
+      console.log("Unable to get auth params")
+      return
+    }
+
+    const { token, publicKey, signature, expire } = authParams
+
+    const file = values.uploadFile[0]
+
+    if (!file || file === null) {
+      console.log("File received was invalid")
+      return
+    }
+
+    // Uploading file
+    try {
+      const fileName = crypto.randomUUID()
+
+      const uploadResponse = await upload({
+        expire,
+        token,
+        signature,
+        publicKey,
+        file,
+        fileName,
+        onProgress: (e) => setProgress((e.loaded / e.total) * 100),
+        abortSignal: abortController.signal
+      })
+
+      console.log("Upload successfull")
+      return uploadResponse.url
+    } catch (error) {
+      if (error instanceof ImageKitAbortError) {
+        console.log("Upload aborted:", error);
+      } else if (error instanceof ImageKitInvalidRequestError) {
+        console.log("Invalid request:", error);
+      } else if (error instanceof ImageKitUploadNetworkError) {
+        console.log("Network error:", error);
+      } else if (error instanceof ImageKitServerError) {
+        console.log("Server error:", error);
+      } else if (error instanceof ProgressEvent) {
+        const xhr = error.target as XMLHttpRequest;
+        console.log("Raw response:", xhr?.responseText);
+      } else {
+        console.log("Upload error:", error);
+      }
+    }
+  }
 
   if (loading) {
     return (
@@ -131,6 +233,48 @@ export default function NewPost() {
               <FormControl>
                 <Textarea className="min-h-[200px]" placeholder="Write your post here..." {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          name="uploadFile"
+          control={addPostForm.control}
+          render={({ field }) => (
+            <FormItem className="space-y-3 rounded-lg border border-border bg-card p-6 shadow-sm">
+              <FormLabel className="text-sm font-medium text-foreground">
+                Upload Files
+              </FormLabel>
+
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      field.onChange(files);
+                    }}
+                    className="cursor-pointer border-dashed border-2 border-border bg-background transition-colors hover:border-border/80 hover:bg-accent/50 file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                  />
+                </div>
+              </FormControl>
+
+              {!!progress && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    {progress && (
+                      <div>
+                        <span>Uploading...</span>
+                        <span>{Math.round(progress)}%</span>
+                      </div>
+                    )}
+                  </div>
+                  <Progress value={progress} className="h-2 bg-secondary" />
+                </div>
+              )}
+
               <FormMessage />
             </FormItem>
           )}

@@ -25,6 +25,11 @@ const postSchema = new mongoose.Schema({
     tags: {
         type: [String],
         default: []
+    },
+
+    files: {
+        type: [String],
+        default: []
     }
 }, { timestamps: true })
 

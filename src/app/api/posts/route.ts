@@ -1,5 +1,5 @@
 import prisma from "@/lib/postgresConnection";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
@@ -24,12 +24,10 @@ export async function POST(req: Request) {
             return new Response("Invalid or missing user data", { status: 400 });
         }
 
-        const id = crypto.randomUUID()
-        const postTags: string[] = tags.split(",")
+        const postTags: string[] = tags.split(", ")
 
-        const newPost = await prisma.newPost.create({
+        const newPost = await prisma.posts.create({
             data: {
-                id,
                 postTitle,
                 audience,
                 content,
@@ -53,16 +51,35 @@ export async function POST(req: Request) {
     }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+    const searchParams = req.nextUrl.searchParams;
+    const queryField = searchParams.get("field");
+    const queryValue = searchParams.get("value");
+
+    let whereClause = {};
+
+    if (queryField && queryValue) {
+        whereClause = {
+            [queryField]: {
+                equals: queryValue,
+                mode: "insensitive"
+            }
+        };
+    }
+
     try {
-        const posts = await prisma.newPost.findMany()
-        return NextResponse.json({
-            posts
-        }, { status: 200 })
+        const posts = await prisma.posts.findMany({
+            where: whereClause
+        });
+
+        return NextResponse.json({ posts }, { status: 200 });
     } catch (error) {
-        console.log("Error getting posts");
-        return NextResponse.json({
-            message: "Fetching posts from DB failed"
-        }, { status: 400 })
+        console.log("Error getting posts", error);
+        return NextResponse.json(
+            { message: "Fetching posts from DB failed" },
+            { status: 400 }
+        );
     }
 }
+
+

@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Globe, Users, Lock, BookOpen, MessageSquare, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import Link from 'next/link';
 
 
-type Post = {
+export type Post = {
+  id: string,
   postTitle: string,
   audience: string,
   content: string,
@@ -16,7 +18,9 @@ type Post = {
   tags: string[],
   files: string[],
   author: string,
-  authorAvatarURL: string
+  authorAvatarURL: string,
+  createdAt: string,
+  updatedAt: string
 }
 
 const Home = async () => {
@@ -99,94 +103,96 @@ const Home = async () => {
 
   const PostCard = ({ post }: { post: Post }) => {
     return (
-      <Card className="w-full max-w-4xl mx-auto hover:shadow-lg transition-shadow duration-200">
-        <CardHeader>
-          <div className="flex gap-4">
-            {/* Thumbnail */}
-            <div className="flex-shrink-0">
-              {post.files.length > 0 ? (
-                <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border">
-                  <Image
-                    src={post.files[0]}
-                    alt={`${post.postTitle} thumbnail`}
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="w-24 h-24 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
-                  <ImageIcon className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start gap-4 mb-3">
-                <CardTitle className="text-xl font-semibold line-clamp-2 flex-1">
-                  {post.postTitle}
-                </CardTitle>
-                <div className="flex flex-col gap-2 flex-shrink-0">
-                  <Badge className={getAudienceColor(post.audience)} variant="secondary">
-                    {getAudienceIcon(post.audience)}
-                    <span className="ml-1">{post.audience}</span>
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Author Information */}
-              <div className="flex items-center gap-2 mb-3">
-                {post.authorAvatarURL ? (
-                  <Image
-                    src={post.authorAvatarURL}
-                    alt={`${post.author} avatar`}
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+      <Link href={`/home/posts/${post.id}`}>
+        <Card className="w-full max-w-4xl mx-auto hover:shadow-lg transition-shadow duration-200">
+          <CardHeader>
+            <div className="flex gap-4">
+              {/* Thumbnail */}
+              <div className="flex-shrink-0">
+                {post.files.length > 0 ? (
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border">
+                    <Image
+                      src={post.files[0]}
+                      alt={`${post.postTitle} thumbnail`}
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 ) : (
-                  <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-gray-600 font-medium">
-                      {post.author?.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-24 h-24 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
-                <span className="text-sm text-gray-700 font-medium">{post.author}</span>
               </div>
 
-              <CardDescription className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-3">
-                {post.content}
-              </CardDescription>
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-4 mb-3">
+                  <CardTitle className="text-xl font-semibold line-clamp-2 flex-1">
+                    {post.postTitle}
+                  </CardTitle>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <Badge className={getAudienceColor(post.audience)} variant="secondary">
+                      {getAudienceIcon(post.audience)}
+                      <span className="ml-1">{post.audience}</span>
+                    </Badge>
+                  </div>
+                </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Badge className={getToneColor(post.tone)} variant="secondary">
-                  <MessageSquare className="w-3 h-3 mr-1" />
-                  {post.tone}
-                </Badge>
-                <Badge className={getReadabilityColor(post.readability)} variant="secondary">
-                  <BookOpen className="w-3 h-3 mr-1" />
-                  {post.readability}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
+                {/* Author Information */}
+                <div className="flex items-center gap-2 mb-3">
+                  {post.authorAvatarURL ? (
+                    <Image
+                      src={post.authorAvatarURL}
+                      alt={`${post.author} avatar`}
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                      <span className="text-xs text-gray-600 font-medium">
+                        {post.author?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-700 font-medium">{post.author}</span>
+                </div>
 
-        <CardContent>
-          {/* Tags */}
-          {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {post.tags
-                .map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag.trim()}
+                <CardDescription className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-3">
+                  {post.content}
+                </CardDescription>
+
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={getToneColor(post.tone)} variant="secondary">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    {post.tone}
                   </Badge>
-                ))}
+                  <Badge className={getReadabilityColor(post.readability)} variant="secondary">
+                    <BookOpen className="w-3 h-3 mr-1" />
+                    {post.readability}
+                  </Badge>
+                </div>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+
+          <CardContent>
+            {/* Tags */}
+            {post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags
+                  .map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag.trim()}
+                    </Badge>
+                  ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </Link>
     )
   }
 

@@ -8,8 +8,8 @@ datasource db {
   url      = env("POSTGRES_DB_URL")
 }
 
-model NewPost {
-  id              String   @id @unique
+model Posts {
+  id              String   @id(map: "Post_pkey") @unique(map: "Post_id_key") @default(uuid())
   postTitle       String   @default("")
   audience        String
   content         String   @default("")

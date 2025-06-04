@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DB_URL")
+}
+
+model NewPost {
+  id              String   @id @unique
+  postTitle       String   @default("")
+  audience        String
+  content         String   @default("")
+  readability     String
+  tone            String
+  tags            String[]
+  files           String[]
+  author          String
+  authorAvatarURL String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

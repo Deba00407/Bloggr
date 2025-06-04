@@ -177,8 +177,7 @@ const Home = async () => {
           {/* Tags */}
           {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {post.tags[0]
-                .split(',')
+              {post.tags
                 .map((tag, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
                     {tag.trim()}

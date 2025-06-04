@@ -32,7 +32,6 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
-import { revalidatePath } from "next/cache";
 
 
 

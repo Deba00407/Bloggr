@@ -1,51 +1,68 @@
-import connectToDB from "@/lib/dbConnection"
-import Post from "@/app/schemas/postSchema"
-import { NextResponse } from "next/server"
+import prisma from "@/lib/postgresConnection";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-    const values = await req.json()
-
-    if (!values) {
-        return new Response("Values received are empty", { status: 400 })
-    }
-
-    const user = values.user
-
-    await connectToDB()
-
     try {
-        await Post.create({
-            postTitle: values.postTitle,
-            audience: values.audience,
-            content: values.content,
-            tags: values.tags,
-            readability: values.readability,
-            tone: values.tone,
-            files: values.filePath,
-            author: user.username,
-            authorAvatarURL: user.imageUrl
+        const values = await req.json();
+
+        if (!values) {
+            return new Response("Values received are empty", { status: 400 });
+        }
+
+        const {
+            postTitle,
+            audience,
+            content,
+            tags,
+            readability,
+            tone,
+            filePath,
+            user
+        } = values;
+
+        if (!user || !user.username || !user.imageUrl) {
+            return new Response("Invalid or missing user data", { status: 400 });
+        }
+
+        const id = crypto.randomUUID()
+        const postTags: string[] = tags.split(",")
+
+        const newPost = await prisma.newPost.create({
+            data: {
+                id,
+                postTitle,
+                audience,
+                content,
+                tags: postTags,
+                readability,
+                tone,
+                files: [filePath],
+                author: user.username,
+                authorAvatarURL: user.imageUrl
+            }
         });
 
-        console.log("✅ Post saved successfully");
-        return new Response("Post saved successfully", { status: 201 });
-    } catch (err) {
-        console.log("❌ Error in saving post to DB:", err);
-        return new Response("Failed to save post", { status: 500 });
+        return new Response(JSON.stringify(newPost), {
+            status: 201,
+            headers: { "Content-Type": "application/json" }
+        });
+
+    } catch (error) {
+        console.error("Error saving to PostgreSQL DB", error);
+        return new Response("Internal Server Error", { status: 500 });
     }
 }
 
-export async function GET(){
-    await connectToDB()
-
+export async function GET() {
     try {
-        const posts = await Post.find()
+        const posts = await prisma.newPost.findMany()
         return NextResponse.json({
             posts
-        }, {status: 200})
+        }, { status: 200 })
     } catch (error) {
         console.log("Error getting posts");
         return NextResponse.json({
             message: "Fetching posts from DB failed"
-        }, {status: 400})
+        }, { status: 400 })
     }
 }

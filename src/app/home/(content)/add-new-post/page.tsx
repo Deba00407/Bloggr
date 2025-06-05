@@ -24,6 +24,8 @@ import {
 
 
 import { Progress } from "@/components/ui/progress"
+import Image from "next/image";
+import { Loader2Icon } from "lucide-react";
 
 import {
   ImageKitAbortError,
@@ -56,6 +58,7 @@ export default function NewPost() {
   const [aiActive, setAiActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -98,11 +101,12 @@ export default function NewPost() {
   const abortController = new AbortController()
 
   const handleFormSubmit = async (values: z.infer<typeof addPostFormSchema>) => {
+    setUploading(true)
 
-    const filePath = await handleFileUpload(values)
+    const filesPath = await handleFileUpload(values)
     const postData = {
       ...values,
-      filePath,
+      filesPath,
       user
     }
 
@@ -114,9 +118,9 @@ export default function NewPost() {
 
     if (response.ok) {
       console.log("Post saved successfully");
-      setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
+        setUploading(false)
       }, 2500)
     } else {
       console.log("Post Save failed");
@@ -143,38 +147,45 @@ export default function NewPost() {
   // Handles file upload
   const handleFileUpload = async (values: z.infer<typeof addPostFormSchema>) => {
 
-    const authParams = await authenticator()
-    if (!authParams) {
-      console.log("Unable to get auth params")
-      return
-    }
+    const files = values.uploadFile
 
-    const { token, publicKey, signature, expire } = authParams
-
-    const file = values.uploadFile[0]
-
-    if (!file || file === null) {
+    if (!files || files === null) {
       console.log("File received was invalid")
       return
     }
 
-    // Uploading file
+    const uploadedFiles: string[] = []
+
+    // Uploading files
     try {
-      const fileName = crypto.randomUUID()
+      for (const file of files) {
+        const authParams = await authenticator()
+        if (!authParams) {
+          console.log("Unable to get auth params")
+          return
+        }
 
-      const uploadResponse = await upload({
-        expire,
-        token,
-        signature,
-        publicKey,
-        file,
-        fileName,
-        onProgress: (e) => setProgress((e.loaded / e.total) * 100),
-        abortSignal: abortController.signal
-      })
+        const { token, publicKey, signature, expire } = authParams
+        const fileName = crypto.randomUUID()
+        const uploadResponse = await upload({
+          expire,
+          token,
+          signature,
+          publicKey,
+          file,
+          fileName,
+          onProgress: (e) => setProgress((e.loaded / e.total) * 100),
+          abortSignal: abortController.signal
+        })
 
-      console.log("Upload successfull")
-      return uploadResponse.url
+        if(uploadResponse.url){
+          uploadedFiles.push(uploadResponse.url)
+        }
+      }
+
+      console.log("File upload successfull")
+      return uploadedFiles
+
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
         console.log("Upload aborted:", error);
@@ -227,7 +238,7 @@ export default function NewPost() {
   return (
     <Form {...addPostForm}>
       <form onSubmit={addPostForm.handleSubmit(handleFormSubmit)} className="max-w-4xl mx-auto p-6 space-y-6">
-        <h1 className="text-3xl font-bold text-white">Write a new post</h1>
+        <h1 className="text-3xl font-bold dark:text-white">Write a new post</h1>
 
         <div className="flex gap-2 items-start">
           <FormField
@@ -266,41 +277,54 @@ export default function NewPost() {
           render={({ field }) => (
             <FormItem className="space-y-3 rounded-lg border border-border bg-card p-6 shadow-sm">
               <FormLabel className="text-sm font-medium text-foreground">
-                Upload Files
+                Upload Images
               </FormLabel>
 
               <FormControl>
                 <div className="relative">
                   <Input
                     type="file"
+                    accept="image/*"
                     multiple
                     onChange={(e) => {
-                      const files = Array.from(e.target.files ?? []);
-                      field.onChange(files);
+                      const newFiles = Array.from(e.target.files ?? []);
+                      const validNewImages = newFiles.filter(
+                        (file) =>
+                          file.type.startsWith("image/") && file.size <= 10 * 1024 * 1024
+                      );
+
+                      const updatedFiles = [...(field.value ?? []), ...validNewImages];
+                      field.onChange(updatedFiles);
                     }}
-                    className="cursor-pointer border-dashed border-2 border-border bg-background transition-colors hover:border-border/80 hover:bg-accent/50 file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                    className="flex items-center cursor-pointer bg-background transition-colors hover:border-border/80 hover:bg-accent/50 file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
                   />
                 </div>
               </FormControl>
 
-              {!!progress && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    {progress && (
-                      <div>
-                        <span>Uploading...</span>
-                        <span>{Math.round(progress)}%</span>
-                      </div>
-                    )}
-                  </div>
-                  <Progress value={progress} className="h-2 bg-secondary" />
+              {/* Preview selected images */}
+              {field.value?.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {field.value.map((file: File, index: number) => (
+                    <div
+                      key={index}
+                      className="aspect-square overflow-hidden rounded-md border border-muted"
+                    >
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        alt={`preview-${index}`}
+                        height={100}
+                        width={100}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
-
-              <FormMessage />
             </FormItem>
           )}
         />
+
+
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary">Enhance ✨</Button>
@@ -394,7 +418,10 @@ export default function NewPost() {
           <Button type="button" variant="outline">Generate Summary 📘</Button>
           <Button type="button" variant="outline">SEO Tips 📈</Button>
           <Button type="button" variant="outline">Image Suggestion 🖼</Button>
-          <Button type="submit" className="ml-auto">Publish ⏩</Button>
+          <Button type="submit" className="ml-auto">
+            {!!uploading && <Loader2Icon className="animate-spin" />}
+            Publish ⏩
+          </Button>
         </div>
 
         {aiActive && (

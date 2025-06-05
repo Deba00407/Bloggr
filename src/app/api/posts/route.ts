@@ -16,7 +16,7 @@ export async function POST(req: Request) {
             tags,
             readability,
             tone,
-            filePath,
+            filesPath,
             user
         } = values;
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
                 tags: postTags,
                 readability,
                 tone,
-                files: [filePath],
+                files: filesPath,
                 author: user.username,
                 authorAvatarURL: user.imageUrl
             }

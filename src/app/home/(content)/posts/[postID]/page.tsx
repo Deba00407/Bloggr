@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -76,6 +77,12 @@ const ThisPost = () => {
         setIsBookmarked(!isBookmarked);
     };
 
+    const getReadingTime = (text: string) => {
+        const wordsReadPerMin = 200
+        const wordCount = text.trim().split(/\s+/).length;
+        return Math.ceil(wordCount / wordsReadPerMin)
+    }
+
 
     if (error) {
         return <div>{error}</div>;
@@ -86,26 +93,25 @@ const ThisPost = () => {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white">
-            {/* Main Content */}
+        <div className="min-h-screen bg-white text-black dark:bg-zinc-950 dark:text-white">
             <main className="max-w-4xl mx-auto px-6 py-8">
                 {/* Breadcrumb */}
-                <nav className="flex items-center gap-2 text-sm text-zinc-400 mb-6">
-                    <a href="#" className="hover:text-white transition-colors">Home</a>
+                <nav className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-6">
+                    <Link href="/home" className="hover:text-black dark:hover:text-white transition-colors">Home</Link>
                     <span>/</span>
-                    <span className="text-white">Article</span>
+                    <span className="text-black dark:text-white">Article</span>
                 </nav>
 
                 {/* Article Header */}
                 <div className="mb-8">
                     <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge variant="secondary" className="bg-zinc-800 text-zinc-300">
+                        <Badge variant="secondary" className="bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                             {post.audience}
                         </Badge>
-                        <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+                        <Badge variant="outline" className="border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
                             {post.readability}
                         </Badge>
-                        <Badge variant="outline" className="border-zinc-700 text-zinc-400">
+                        <Badge variant="outline" className="border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
                             {post.tone}
                         </Badge>
                     </div>
@@ -114,7 +120,7 @@ const ThisPost = () => {
                         {post.postTitle}
                     </h1>
 
-                    <div className="flex items-center gap-4 text-sm text-zinc-400 mb-6">
+                    <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400 mb-6">
                         <div className="flex items-center gap-2">
                             <Avatar className="w-6 h-6">
                                 <AvatarImage src={post.authorAvatarURL} />
@@ -128,7 +134,7 @@ const ThisPost = () => {
                         </div>
                         <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
-                            <span>5 min read</span>
+                            <span>{getReadingTime(post.content)} min read</span>
                         </div>
                     </div>
 
@@ -140,26 +146,26 @@ const ThisPost = () => {
                                 alt={post.postTitle}
                                 height={100}
                                 width={100}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover bg-center bg-no-repeat"
                             />
                         </div>
                     )}
                 </div>
 
                 {/* Article Content */}
-                <Card className="bg-zinc-900 border-zinc-800 p-8 mb-8">
-                    <div className="prose prose-invert prose-lg max-w-none">
+                <Card className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 p-8 mb-8">
+                    <div className="prose prose-lg prose-zinc dark:prose-invert max-w-none">
                         {post.content.split('\n\n').map((paragraph, index) => {
                             if (paragraph.startsWith('## ')) {
                                 return (
-                                    <h2 key={index} className="text-2xl font-bold mt-8 mb-4 text-white">
+                                    <h2 key={index} className="text-2xl font-bold mt-8 mb-4">
                                         {paragraph.replace('## ', '')}
                                     </h2>
                                 );
                             } else if (paragraph.startsWith('- ')) {
                                 const listItems = paragraph.split('\n').filter(item => item.startsWith('- '));
                                 return (
-                                    <ul key={index} className="list-disc list-inside space-y-2 mb-6 text-zinc-300">
+                                    <ul key={index} className="list-disc list-inside space-y-2 mb-6">
                                         {listItems.map((item, itemIndex) => (
                                             <li key={itemIndex} className="leading-relaxed">
                                                 {item.replace('- **', '').replace('**', '').replace('- ', '')}
@@ -169,7 +175,7 @@ const ThisPost = () => {
                                 );
                             } else {
                                 return (
-                                    <p key={index} className="text-zinc-300 leading-relaxed mb-6">
+                                    <p key={index} className="leading-relaxed mb-6">
                                         {paragraph}
                                     </p>
                                 );
@@ -181,13 +187,17 @@ const ThisPost = () => {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-8">
                     {post.tags.map((tag, index) => (
-                        <Badge key={index} variant="secondary" className="bg-zinc-800 text-zinc-300 hover:bg-zinc-700">
+                        <Badge
+                            key={index}
+                            variant="secondary"
+                            className="bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                        >
                             #{tag}
                         </Badge>
                     ))}
                 </div>
 
-                <Separator className="bg-zinc-800 mb-8" />
+                <Separator className="bg-zinc-300 dark:bg-zinc-800 mb-8" />
 
                 {/* Interaction Buttons */}
                 <div className="flex items-center gap-4 mb-8">
@@ -195,14 +205,17 @@ const ThisPost = () => {
                         variant="ghost"
                         size="sm"
                         onClick={handleLike}
-                        className={`flex items-center gap-2 hover:bg-zinc-800 ${isLiked ? 'text-blue-500' : 'text-zinc-400'
-                            }`}
+                        className={`flex items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 ${isLiked ? 'text-blue-600 dark:text-blue-500' : 'text-zinc-600 dark:text-zinc-400'}`}
                     >
                         <ThumbsUp className="w-5 h-5" />
                         <span className="font-semibold">{likes}</span>
                     </Button>
 
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2 text-zinc-400 hover:bg-zinc-800 hover:text-white">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2 text-zinc-600 hover:bg-zinc-200 hover:text-black dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                    >
                         <MessageCircle className="w-5 h-5" />
                         <span className="font-semibold">45</span>
                     </Button>
@@ -211,21 +224,24 @@ const ThisPost = () => {
                         variant="ghost"
                         size="sm"
                         onClick={handleBookmark}
-                        className={`flex items-center gap-2 hover:bg-zinc-800 ${isBookmarked ? 'text-yellow-500' : 'text-zinc-400'
-                            }`}
+                        className={`flex items-center gap-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 ${isBookmarked ? 'text-yellow-500' : 'text-zinc-600 dark:text-zinc-400'}`}
                     >
                         <Bookmark className="w-5 h-5" />
                         <span className="font-semibold">67</span>
                     </Button>
 
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2 text-zinc-400 hover:bg-zinc-800 hover:text-white">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2 text-zinc-600 hover:bg-zinc-200 hover:text-black dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                    >
                         <Share2 className="w-5 h-5" />
                         <span className="font-semibold">89</span>
                     </Button>
                 </div>
 
                 {/* Author Card */}
-                <Card className="bg-zinc-900 border-zinc-800 p-6">
+                <Card className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 p-6">
                     <div className="flex items-start gap-4">
                         <Avatar className="w-16 h-16">
                             <AvatarImage src={post.authorAvatarURL} />
@@ -233,11 +249,11 @@ const ThisPost = () => {
                         </Avatar>
                         <div className="flex-1">
                             <h3 className="text-xl font-semibold mb-2">{post.author}</h3>
-                            <p className="text-zinc-400 mb-4">
+                            <p className="text-zinc-600 dark:text-zinc-400 mb-4">
                                 Senior Software Engineer and AI enthusiast with over 8 years of experience in full-stack development.
                                 Passionate about exploring the intersection of artificial intelligence and modern software practices.
                             </p>
-                            <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+                            <Button variant="outline" size="sm" className="border-zinc-300 text-zinc-700 hover:bg-zinc-200 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
                                 Follow Author
                             </Button>
                         </div>
@@ -245,6 +261,7 @@ const ThisPost = () => {
                 </Card>
             </main>
         </div>
+
     );
 }
 

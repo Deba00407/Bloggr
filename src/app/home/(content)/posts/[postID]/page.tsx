@@ -89,7 +89,17 @@ const ThisPost = () => {
     }
 
     if (post === null) {
-        return <div>Loading.....</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <Image
+                    src="/Loading-animation.gif"
+                    alt="Loading..."
+                    width={96}
+                    height={96}
+                    priority
+                />
+            </div>
+        );
     }
 
     return (

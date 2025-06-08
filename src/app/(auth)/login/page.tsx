@@ -24,6 +24,7 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Loader2Icon } from "lucide-react"
 
 import { Eye, EyeClosed } from "lucide-react"
 
@@ -215,6 +216,7 @@ export default function Page() {
                             className="w-full"
                             disabled={!isLoaded}
                         >
+                            {!!loggingIn && <Loader2Icon className="animate-spin"/>}
                             {loggingIn ? "Signing in...." : "Sign in"}
                         </Button>
 

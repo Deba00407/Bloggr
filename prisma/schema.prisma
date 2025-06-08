@@ -9,16 +9,39 @@ datasource db {
 }
 
 model Posts {
-  id              String   @id(map: "Post_pkey") @unique(map: "Post_id_key") @default(uuid())
-  postTitle       String   @default("")
-  audience        String
-  content         String   @default("")
-  readability     String
-  tone            String
-  tags            String[]
-  files           String[]
-  author          String
-  authorAvatarURL String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id(map: "Post_pkey") @unique(map: "Post_id_key") @default(uuid())
+  postTitle   String   @default("")
+  audience    String
+  content     String   @default("")
+  readability String
+  tone        String
+  tags        String[]
+  files       String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(uuid())
+  profileImage String
+  username     String
+  firstname    String   @default("")
+  lastname     String   @default("")
+  emailAddress String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  following Follow[] @relation("FollowingRelation")
+  followers Follow[] @relation("FollowerRelation")
+}
+
+model Follow {
+  id         Int    @id @default(autoincrement())
+  follower   User   @relation("FollowingRelation", fields: [followerId], references: [id])
+  followerId String
+
+  following   User   @relation("FollowerRelation", fields: [followingId], references: [id])
+  followingId String
+
+  @@unique([followerId, followingId])
 }

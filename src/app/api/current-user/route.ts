@@ -9,7 +9,7 @@ export async function GET(){
             "message": "User not found"
         }, {status: 400})
     }
-
+    
     return NextResponse.json({
         user
     }, {status: 200})

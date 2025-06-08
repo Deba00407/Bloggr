@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import { Loader2Icon } from "lucide-react"
 
 import { Eye, EyeClosed } from "lucide-react"
 
@@ -219,6 +220,7 @@ export default function Page() {
                             className="w-full"
                             disabled={!isLoaded}
                         >
+                            {!!creatingAccount && <Loader2Icon className="animate-spin" />}
                             {creatingAccount ? "Creating Account..." : "Create Account"}
                         </Button>
 
@@ -283,6 +285,7 @@ export default function Page() {
                             className="w-full"
                             disabled={!isLoaded || verificationCode.length !== 6}
                         >
+                            {!!verifying && <Loader2Icon className="animate-spin" />}
                             {verifying ? "Verifying..." : "Verify Email"}
                         </Button>
 

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Globe, Users, Lock, BookOpen, MessageSquare, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
+import { currentUser } from '@clerk/nextjs/server';
 
 
 export type Post = {
@@ -17,8 +18,6 @@ export type Post = {
   tone: string,
   tags: string[],
   files: string[],
-  author: string,
-  authorAvatarURL: string,
   createdAt: string,
   updatedAt: string
 }
@@ -49,8 +48,9 @@ const Home = async () => {
     }
   }
 
-
   const posts: Post[] = await getAllPosts()
+  
+  const user = await currentUser()
 
   const getAudienceIcon = (audience: string) => {
     switch (audience) {
@@ -112,7 +112,7 @@ const Home = async () => {
                 {post.files.length > 0 ? (
                   <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border">
                     <Image
-                      src={post.files[0]}
+                      src={Array.isArray(post.files) ? post.files[0] : post.files}
                       alt={`${post.postTitle} thumbnail`}
                       width={96}
                       height={96}
@@ -142,10 +142,10 @@ const Home = async () => {
 
                 {/* Author Information */}
                 <div className="flex items-center gap-2 mb-3">
-                  {post.authorAvatarURL ? (
+                  {user?.imageUrl ? (
                     <Image
-                      src={post.authorAvatarURL}
-                      alt={`${post.author} avatar`}
+                      src={user.imageUrl}
+                      alt={`${user.username} avatar`}
                       width={24}
                       height={24}
                       className="w-6 h-6 rounded-full object-cover"
@@ -153,11 +153,11 @@ const Home = async () => {
                   ) : (
                     <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
                       <span className="text-xs text-gray-600 font-medium">
-                        {post.author?.charAt(0).toUpperCase()}
+                        {user?.username?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
-                  <span className="text-sm text-gray-700 font-medium">{post.author}</span>
+                  <span className="text-sm text-gray-700 font-medium">{user?.username}</span>
                 </div>
 
                 <CardDescription className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-3">
